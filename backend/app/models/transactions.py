@@ -3,7 +3,7 @@ from unicodedata import category
 from unittest.util import _MAX_LENGTH
 from sqlalchemy import BigInteger, Float, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
-from db.config import Base
+from app.db.config import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 
@@ -17,7 +17,10 @@ class Transaction(Base):
 
     category_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("category.id"), nullable=False)
     category = relationship("Category", back_populates="transactions")
-    user = relationship("User", back_populates='transactions' ) 
+
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False)
+    user = relationship("User", back_populates="transactions")
+
 
 
 class Category(Base):
