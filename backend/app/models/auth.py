@@ -2,7 +2,7 @@ from typing import List
 from unittest.util import _MAX_LENGTH
 from sqlalchemy import BigInteger, ForeignKey, String, DateTime
 from sqlalchemy.orm import relationship
-from backend.app.models.Transactions import Transaction
+from transactions import Transaction
 from db.config import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
