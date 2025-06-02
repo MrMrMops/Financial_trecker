@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 load_dotenv()
@@ -25,4 +25,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
