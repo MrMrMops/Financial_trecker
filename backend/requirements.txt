@@ -5,6 +5,7 @@ uvicorn[standard]==0.29.0
 # --- Работа с БД ---
 SQLAlchemy==2.0.30
 asyncpg==0.29.0  # Асинхронный драйвер для PostgreSQL
+psycopg2
 alembic==1.13.1
 
 # --- Валидация и сериализация ---

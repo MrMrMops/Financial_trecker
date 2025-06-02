@@ -2,19 +2,23 @@ version: '3.8'
 
 services:
   web:
-    build: .
-    container_name: financialTrecker
+    build:
+      context: ../      
+      dockerfile: docker/Dockerfile
     restart: always
     env_file:
-      - .env
+      - ../.env
     ports:
       - "8000:8000"
-    command: ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    entrypoint: ["/usr/src/app/backend/docker/entrypoint.sh"]
+    networks:
+      - app_network
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - app_network
+    volumes:
+      - ../alembic/versions:/usr/src/app/backend/alembic/versions
+
 
   db:
     image: postgres:15
@@ -45,18 +49,20 @@ services:
     networks:
       - app_network
 
-  celery_worker:
-    build: .
-    container_name: financialTrecker_celery_worker
-    restart: always
-    command: ["celery", "-A", "api.core.celery_app", "worker", "--loglevel=info"]
-    env_file:
-      - .env
-    depends_on:
-      - redis
-      - db
-    networks:
-      - app_network
+  # celery_worker:
+  #   build:
+  #     context: ../
+  #     dockerfile: docker/Dockerfile
+  #   container_name: financialTrecker_celery_worker
+  #   restart: always
+  #   command: ["celery", "-A", "api.core.celery_app", "worker", "--loglevel=info"]
+  #   env_file:
+  #     - ../.env
+  #   depends_on:
+  #     - redis
+  #     - db
+  #   networks:
+  #     - app_network
 
 volumes:
   postgres_data:
