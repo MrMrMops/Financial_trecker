@@ -17,4 +17,5 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     is_superuser: Mapped[bool] = mapped_column(default=False)
     transactions : Mapped[List[Transaction]] = relationship('Transaction', back_populates='user',cascade='all, delete-orphan')
+    categories = relationship("Category", back_populates="user")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow())

@@ -1,21 +1,28 @@
+
+
 from typing import List
 from unicodedata import category
 from unittest.util import _MAX_LENGTH
-from sqlalchemy import BigInteger, Float, ForeignKey, Integer, String, DateTime
+from annotated_types import T
+from sqlalchemy import BigInteger, Enum, Float, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from app.db.config import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 
+from app.schemas.transaction_schema import TransactionType
+
 
 class Transaction(Base):
     __tablename__ = "transactions"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True, unique=True)
     title: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     cash: Mapped[float] = mapped_column(Float, nullable=False)
+    type : Mapped[TransactionType] = mapped_column(Enum(TransactionType), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow())
 
-    category_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("category.id"), nullable=False)
+    category_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("category.id"), nullable=True) #исправить после Crud категорий nullable=False
     category = relationship("Category", back_populates="transactions")
 
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False)
@@ -26,7 +33,10 @@ class Transaction(Base):
 class Category(Base):
     __tablename__ = "category"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True,unique=True)
     title: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False)
+    user = relationship("User", back_populates="categories")
 
     transactions = relationship("Transaction", back_populates="category", cascade="all, delete")

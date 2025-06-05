@@ -96,9 +96,6 @@ async def get_current_user(
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         user_id: str = payload.get("sub")
 
-
-
-
         if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
