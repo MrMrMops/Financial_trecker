@@ -6,7 +6,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 
-from app.db.config import Base
+from app.db.base import Base
 from app.models.auth import User
 from app.models.transactions import Transaction, Category
 
@@ -28,8 +28,6 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 
 
-
-# Замените на фактический путь к вашим моделям
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

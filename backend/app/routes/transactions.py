@@ -1,17 +1,20 @@
 from datetime import date
 
 from typing import List, Optional
-from fastapi import APIRouter, Path, status, Depends
+from fastapi import APIRouter, Path, Query, status, Depends
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.transactions import Transaction
 from app.models.auth import User
-from app.schemas.transaction_schema import TransactionCreate, TransactionOut, TransactionType, TransactionUpdate
+from app.schemas.transaction_schema import SortableTransactionFields, TransactionCreate, TransactionOut, TransactionType, TransactionUpdate
 from app.services.auth import get_current_user
 from app.db.database import get_async_session
 from app.services.transactions import (
     create_transactions,
     delete_transaction,
+    export_transactions_csv,
+    get_analitics_on_category,
+    get_analitics_on_month,
     get_balance,
     get_transactions,
     get_one_transaction,
@@ -62,10 +65,41 @@ async def delete_transaction_route(
         session: AsyncSession = Depends(get_async_session)):
     return await delete_transaction(user, session, transaction_id)
 
+@transactions_router.get(
+    '/analytics',
+    #сделать схему под выход
+    summary="Получить Доходы и расходы на месяц",
+    description=(
+        "Возвращает месяц, доходы и расходы за месяц ")
+)
+async def get_analitics_on_month_route(
+    year: int, 
+    month: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+
+    ):
+    return await get_analitics_on_month(user,session,year,month)
+
+@transactions_router.get(
+    '/category_analytics',
+    summary="Получить Доходы и расходы по категории",
+    description=(
+        "Возвращает доходы и расходы по категории, если сроки не указаны, считает за весь период")
+)
+async def get_analitics_on_category_route(
+    category_id: int,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    user: User= Depends(get_current_user), 
+    session: AsyncSession = Depends(get_async_session),
+    ):
+
+    return await get_analitics_on_category(user,session,start_date,end_date,category_id)
 
 @transactions_router.get(
     '/balance',
-    # response_model=int,
+    response_model=int,
     summary="Получить баланс",
     description=(
         "Возвращает число - баланс на указанную дату, если дата не указана то считается на текущий день")
@@ -78,20 +112,6 @@ async def get_balance_route(
     
     return await get_balance(user,session,current_date)
     
-
-
-@transactions_router.get(
-    '/{transaction_id}',
-    response_model=TransactionOut,
-    summary="Получить одну транзакцию",
-    description="Возвращает данные конкретной транзакции по её ID. Доступно только владельцу."
-)
-async def get_transaction_route(
-        transaction_id: int = Path(..., ge=1),
-        user: User = Depends(get_current_user),
-        session: AsyncSession = Depends(get_async_session)):
-    return await get_one_transaction(user, session, transaction_id)
-
 
 @transactions_router.get(
     '/',
@@ -110,7 +130,39 @@ async def get_all_transactions_route(
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         category_id: Optional[int] = None,
+        limit: int = Query(20, ge=1, le=100),
+        offset: int = Query(0, ge=0),
+        sort_by: SortableTransactionFields = Query("created_at"),
+        order: str = Query("desc")
         ):
-    return await get_transactions(user, session,type,start_date,end_date, category_id)
+    return await get_transactions(user, session,type,start_date,end_date, category_id,limit,offset,sort_by,order)
 
 
+@transactions_router.get(
+    "/export",
+    response_class=StreamingResponse,
+    summary="Экспорт транзакций в формате CSV",
+    description=(
+        "Экспортирует все транзакции текущего авторизованного пользователя в CSV-файл. "
+        "Файл формируется в памяти и возвращается как вложение без сохранения на диск. "
+        "Поддерживает экспорт полей: id, title, cash, type, category_id, created_at."
+    )
+)
+async def export_transactions_csv_route(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    return await export_transactions_csv(user,session)
+
+
+@transactions_router.get(
+    '/{transaction_id}',
+    response_model=TransactionOut,
+    summary="Получить одну транзакцию",
+    description="Возвращает данные конкретной транзакции по её ID. Доступно только владельцу."
+)
+async def get_transaction_route(
+        transaction_id: int = Path(..., ge=1),
+        user: User = Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_session)):
+    return await get_one_transaction(user, session, transaction_id)

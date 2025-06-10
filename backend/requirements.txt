@@ -5,9 +5,9 @@ uvicorn[standard]==0.29.0
 # --- Работа с БД ---
 SQLAlchemy==2.0.30
 asyncpg==0.29.0  # Асинхронный драйвер для PostgreSQL
-psycopg2
+psycopg2-binary
 alembic==1.13.1
-
+python-multipart>=0.0.5
 
 # --- Валидация и сериализация ---
 pydantic==2.7.1
@@ -16,6 +16,8 @@ pydantic-settings==2.2.1
 # --- Асинхронные задачи ---
 celery==5.3.6
 redis==5.0.3
+pandas
+fastapi_mail
 
 # --- Обработка CORS (если API вызывается с фронтенда) ---
 fastapi[all]==0.110.0  # Можно убрать, если хотите минимальный набор

@@ -1,17 +1,12 @@
-
-
-from typing import List
 from unicodedata import category
 from unittest.util import _MAX_LENGTH
 from annotated_types import T
-from sqlalchemy import BigInteger, Enum, Float, ForeignKey, Integer, String, DateTime
+from sqlalchemy import BigInteger, Enum, Float, ForeignKey, String, DateTime
 from sqlalchemy.orm import relationship
-from app.db.config import Base
+from app.db.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
-
 from app.schemas.transaction_schema import TransactionType
-
 
 class Transaction(Base):
     __tablename__ = "transactions"
@@ -22,12 +17,11 @@ class Transaction(Base):
     type : Mapped[TransactionType] = mapped_column(Enum(TransactionType), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow())
 
-    category_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("category.id"), nullable=True) #исправить после Crud категорий nullable=False
+    category_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("category.id"), nullable=False)
     category = relationship("Category", back_populates="transactions")
 
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="transactions")
-
 
 
 class Category(Base):

@@ -2,7 +2,6 @@ from typing import List
 from fastapi import APIRouter, Path, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.transactions import Category
 from app.models.auth import User
 from app.schemas.category_schema import CategoryBase,CategoryOut
 from app.services.auth import get_current_user
@@ -60,7 +59,7 @@ async def delete_category_route(
 
 @categories_router.get(
     '/{category_id}',
-    response_model=CategoryBase,
+    response_model=CategoryOut,
     summary="Получить одну категорию",
     description="Возвращает данные конкретной категории по её ID. Доступно только владельцу."
 )

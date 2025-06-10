@@ -18,6 +18,7 @@ services:
         condition: service_healthy
     volumes:
       - ../alembic/versions:/usr/src/app/backend/alembic/versions
+      - ../app/static:/usr/src/app/backend/app/static
 
 
   db:
@@ -49,20 +50,22 @@ services:
     networks:
       - app_network
 
-  # celery_worker:
-  #   build:
-  #     context: ../
-  #     dockerfile: docker/Dockerfile
-  #   container_name: financialTrecker_celery_worker
-  #   restart: always
-  #   command: ["celery", "-A", "api.core.celery_app", "worker", "--loglevel=info"]
-  #   env_file:
-  #     - ../.env
-  #   depends_on:
-  #     - redis
-  #     - db
-  #   networks:
-  #     - app_network
+  celery_worker:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: financialTrecker_celery_worker
+    restart: always
+    command: ["celery", "-A", "app.db.config.celery_app", "worker", "--loglevel=info"]
+    env_file:
+      - ../.env
+    depends_on:
+      - redis
+      - db
+    networks:
+      - app_network
+    volumes:
+      - ../app/static:/usr/src/app/backend/app/static
 
 volumes:
   postgres_data:

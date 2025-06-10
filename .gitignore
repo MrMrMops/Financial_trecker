@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+backend/app/static/export
+backend/alembic/versions
+
 # Distribution / packaging
 .Python
 build/

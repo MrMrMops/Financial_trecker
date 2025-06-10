@@ -3,6 +3,11 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
+class SortableTransactionFields(str, Enum):
+    created_at = "created_at"
+    cash = "cash"
+    id = "id"
+    type = "type" 
 
 class TransactionType(str, Enum):
     income = "income"
@@ -28,5 +33,3 @@ class TransactionOut(BaseModel):
     category_id: int = Field(..., ge=0)
     created_at: datetime
 
-    class Config:
-        from_attributes = True  # для Pydantic v2 вместо orm_mode

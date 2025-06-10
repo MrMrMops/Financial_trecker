@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  test-db:
+    image: postgres:15
+    container_name: financial_test_db
+    environment:
+      POSTGRES_DB: test_financial_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+
+  test:
+    build:
+      context: ../
+      dockerfile: tests/Dockerfile
+    depends_on:
+      test-db:
+        condition: service_healthy
+      
+    working_dir: /usr/src/app/tests
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@financial_test_db:5432/test_financial_db
+      SYNC_DATABASE_URL: postgresql+psycopg2://postgres:postgres@financial_test_db:5432/test_financial_db
+      PYTHONPATH: /usr/src/app
+    command: >
+      sh -c "pytest -v"
+      pytest -Werror 
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    build:
+      context: ../
+      dockerfile: tests/Dockerfile
+    command: celery -A app.db.config.celery_app worker --loglevel=info
+    depends_on:
+      - redis
+      - test-db
+    environment:
+      - SYNC_DATABASE_URL=postgresql+psycopg2://postgres:postgres@financial_test_db:5432/test_financial_db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - CELERY_TASK_ALWAYS_EAGER=True

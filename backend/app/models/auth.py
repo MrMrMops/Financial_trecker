@@ -1,11 +1,12 @@
 from typing import List
 from unittest.util import _MAX_LENGTH
-from sqlalchemy import BigInteger, ForeignKey, String, DateTime
+from sqlalchemy import BigInteger, String, DateTime
 from sqlalchemy.orm import relationship
 from app.models.transactions import Transaction
-from app.db.config import Base
+from app.db.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
-from datetime import datetime, timezone
+from datetime import datetime
+
 
 class User(Base):
     __tablename__ = "users"
