@@ -55,6 +55,7 @@ async def update_transaction_route(
 
 @transactions_router.delete(
     '/{transaction_id}',
+    response_model=dict,
     status_code=status.HTTP_200_OK,
     summary="Удаление транзакции",
     description="Удаляет транзакцию по ID. Доступно только владельцу."
@@ -67,7 +68,7 @@ async def delete_transaction_route(
 
 @transactions_router.get(
     '/analytics',
-    #сделать схему под выход
+    response_model=dict,
     summary="Получить Доходы и расходы на месяц",
     description=(
         "Возвращает месяц, доходы и расходы за месяц ")
@@ -83,6 +84,7 @@ async def get_analitics_on_month_route(
 
 @transactions_router.get(
     '/category_analytics',
+    response_model=dict,
     summary="Получить Доходы и расходы по категории",
     description=(
         "Возвращает доходы и расходы по категории, если сроки не указаны, считает за весь период")

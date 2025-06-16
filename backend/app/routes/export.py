@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from app.models.auth import User
@@ -7,6 +8,8 @@ from app.db.config import celery_app
 from celery.result import AsyncResult
 
 export_router = APIRouter(prefix="/api/export", tags=["Export"])
+
+logger = logging.getLogger(__name__)
 
 
 @export_router.post(
@@ -20,6 +23,9 @@ export_router = APIRouter(prefix="/api/export", tags=["Export"])
 )
 async def export_csv(current_user: User = Depends(get_current_user)):
     task = export_transactions_to_csv.delay(current_user.id)
+
+    logger.info("export {task.id} start from user {current_user.id}")
+
     return {"task_id": task.id, "detail": "Экспорт запущен"}
 
 

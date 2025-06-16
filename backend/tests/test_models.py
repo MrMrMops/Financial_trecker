@@ -1,3 +1,4 @@
+import uuid
 import pytest
 from datetime import datetime
 
@@ -13,24 +14,28 @@ from app.db.base import Base
 async def test_create_user(db_session):
     user = User(
         name="Test User",
-        email="test@example.com",
+        email = f"test_{uuid.uuid4().hex}@example.com",
         hashed_password="hashed_password"
     )
     db_session.add(user)
     await db_session.commit()
 
+    await db_session.refresh(user)
+    assert user.id is not None
+    assert user.name == "Test User"
+
 @pytest.mark.asyncio
 async def test_create_category(db_session):
     user = User(
         name="Test User",
-        email="test@example.com",
+        email = f"test_{uuid.uuid4().hex}@example.com",
         hashed_password="hashed_password"
     )
     db_session.add(user)
     await db_session.flush()  # Без коммита, чтобы не терять контроль
 
     category = Category(
-        title="Groceries",
+        title="Groceriestest",
         user_id=user.id
     )
     db_session.add(category)
@@ -38,7 +43,7 @@ async def test_create_category(db_session):
     await db_session.refresh(category)
 
     assert category.id is not None
-    assert category.title == "Groceries"
+    assert category.title == "Groceriestest"
     assert category.user_id == user.id
 
 
@@ -46,7 +51,7 @@ async def test_create_category(db_session):
 async def test_create_transaction(db_session):
     user = User(
         name="Test User",
-        email="test@example.com",
+        email = f"test_{uuid.uuid4().hex}@example.com",
         hashed_password="hashed_password"
     )
     db_session.add(user)

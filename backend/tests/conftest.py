@@ -1,4 +1,5 @@
 import logging
+import uuid
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import  create_async_engine, async_sessionmaker
@@ -8,8 +9,9 @@ from app.db.base import Base
 from app.models.auth import User
 from app.models.transactions import Category, Transaction
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from app.services.auth import create_access_token, get_password_hash
+from app.schemas.transaction_schema import TransactionType
 from httpx import AsyncClient
 from app.main import app
 
@@ -70,13 +72,9 @@ async def authorized_client():
 
     # Создаём пользователя и токен в одной сессии
     async with AsyncTestingSession() as session:
-        user = User(
-            name="TestUser",
-            email="testuser@example.com",
-            hashed_password=get_password_hash("hashed_password"),  # рекомендуется захешировать
-            is_active=True,
-            is_superuser=False
-        )
+        unique_email = f"test_{uuid.uuid4().hex}@example.com"
+        user = User(name = f"user_{uuid.uuid4().hex[:6]}", email = unique_email, hashed_password = get_password_hash("secret") )
+        
         session.add(user)
         await session.commit()
         await session.refresh(user)
@@ -89,3 +87,15 @@ async def authorized_client():
         yield client
 
     app.dependency_overrides.clear()
+
+@pytest_asyncio.fixture()
+async def category_id(db_session):
+    category = Category(
+        title="Groceries",
+        user_id=1
+    )
+    db_session.add(category)
+    await db_session.commit()
+    await db_session.refresh(category)   
+
+    return category.id

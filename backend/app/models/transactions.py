@@ -1,6 +1,3 @@
-from unicodedata import category
-from unittest.util import _MAX_LENGTH
-from annotated_types import T
 from sqlalchemy import BigInteger, Enum, Float, ForeignKey, String, DateTime
 from sqlalchemy.orm import relationship
 from app.db.base import Base
@@ -15,12 +12,12 @@ class Transaction(Base):
     title: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     cash: Mapped[float] = mapped_column(Float, nullable=False)
     type : Mapped[TransactionType] = mapped_column(Enum(TransactionType), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
 
-    category_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("category.id"), nullable=False)
+    category_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("category.id"), nullable=False, index=True)
     category = relationship("Category", back_populates="transactions")
 
-    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False, index=True)
     user = relationship("User", back_populates="transactions")
 
 

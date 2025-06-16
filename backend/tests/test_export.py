@@ -8,6 +8,8 @@ from app.models.auth import User
 import pytest
 from sqlalchemy.orm import sessionmaker
 
+from app.schemas.transaction_schema import TransactionType
+
 
 
 @pytest.mark.asyncio
@@ -40,5 +42,17 @@ async def test_get_export_status_completed(authorized_client):
         pytest.fail(f"Celery task did not complete in time {response.json()}, {status_resp.json()}")
 
 
-
-
+@pytest.mark.asyncio
+async def test_export_flow(authorized_client):
+    resp = await authorized_client.post("/api/export/")
+    assert resp.status_code == 200
+    task_id = resp.json()["task_id"]
+    # подождать выполнения
+    for _ in range(5):
+        await asyncio.sleep(1)
+        status = await authorized_client.get(f"/api/export/status/{task_id}")
+        if status.json().get("status") == "completed":
+            assert status.json().get("file_url")
+            break
+    else:
+        pytest.fail("Export task did not complete")

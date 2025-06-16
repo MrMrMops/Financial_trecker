@@ -18,7 +18,7 @@ categories_router = APIRouter(prefix="/categories", tags=["categories"])
 
 @categories_router.post(
     '/',
-    # response_model=CategoryOut,
+    response_model=CategoryOut,
     status_code=status.HTTP_201_CREATED,
     summary="Создание категории",
     description="Создает новую категорию для текущего пользователя. Требуется только название категории."
@@ -46,6 +46,7 @@ async def update_category_route(
 
 @categories_router.delete(
     '/{category_id}',
+    response_model=dict,
     status_code=status.HTTP_200_OK,
     summary="Удаление категории",
     description="Удаляет категорию по ID. Доступно только владельцу."

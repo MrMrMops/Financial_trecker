@@ -2,6 +2,7 @@ import pytest
 from httpx import AsyncClient
 from app.main import app
 from app.schemas.transaction_schema import TransactionType
+from fastapi import status
 
 # CRUD CATEGORY
 
@@ -57,12 +58,12 @@ async def test_get_category_success(authorized_client):
 # CRUD TRANSACTION
 
 @pytest.mark.asyncio
-async def test_create_transaction(authorized_client):
+async def test_create_transaction(authorized_client,category_id):
     payload = {
         "title": "Test transaction",
         "cash": 150.0,
         "type": "income",  # enum TransactionType as string
-        "category_id": 1
+        "category_id": category_id
     }
     response = await authorized_client.post("/transactions/", json=payload)
     assert response.status_code == 201
@@ -142,6 +143,7 @@ async def test_delete_transaction(authorized_client):
 
     delete_resp = await authorized_client.delete(f"/transactions/{transaction_id}")
     assert delete_resp.status_code == 200
+
 
 
 # OTHER TRANSACTION ROUTES 
@@ -228,3 +230,46 @@ async def test_export_transactions_csv_route(authorized_client):
     content = await response.aread()
     # Контент CSV должен содержать заголовки
     assert b"id,title,cash,type,category_id,created_at" in content
+
+
+#NEGATIVE TESTS
+
+@pytest.mark.asyncio
+async def test_category_not_found(authorized_client):
+    # GET non-existent
+    r = await authorized_client.get("/categories/9999")
+    assert r.status_code == status.HTTP_404_NOT_FOUND
+
+    # DELETE non-existent
+    r = await authorized_client.delete("/categories/9999")
+    assert r.status_code == status.HTTP_404_NOT_FOUND
+
+    # PATCH non-existent
+    r = await authorized_client.patch("/categories/9999", json={"title": "x"})
+    assert r.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_transaction_forbidden_and_not_found(authorized_client):
+    # GET non-existent
+    r = await authorized_client.get("/transactions/9999")
+    assert r.status_code == status.HTTP_404_NOT_FOUND
+
+    # DELETE non-existent
+    r = await authorized_client.delete("/transactions/9999")
+    assert r.status_code == status.HTTP_404_NOT_FOUND
+
+    # PATCH non-existent
+    r = await authorized_client.patch("/transactions/9999", json={"title": "x"})
+    assert r.status_code == status.HTTP_404_NOT_FOUND
+
+    # Create category, user2 unauthorized update
+    c = await authorized_client.post("/categories/", json={"title": "Temp"})
+    cat_id = c.json()["id"]
+    tx = await authorized_client.post("/transactions/", json={"title": "T", "cash": 1, "type": "income", "category_id": cat_id})
+    tx_id = tx.json()["id"]
+    # Simulate other user by removing auth and using invalid token
+    r = await authorized_client.patch(f"/transactions/{tx_id}", headers={"Authorization": "Bearer wrong"}, json={"title": "X"})
+    assert r.status_code == status.HTTP_401_UNAUTHORIZED
+
+

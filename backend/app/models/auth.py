@@ -13,7 +13,7 @@ class User(Base):
 
     id : Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     name : Mapped[str] = mapped_column(String(50), nullable=False)
-    email : Mapped[str] = mapped_column(String(255), nullable=True)
+    email : Mapped[str] = mapped_column(String(255), nullable=True, unique=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
     is_superuser: Mapped[bool] = mapped_column(default=False)
